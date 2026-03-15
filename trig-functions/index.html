@@ -401,7 +401,7 @@ function draw() {
   ctx.lineTo(px, py);
   ctx.stroke();
 
-  // Adjacent (cos) - horizontal
+  // Adjacent - horizontal
   if (cos || tan) {
     ctx.strokeStyle = COLOR_ADJ;
     ctx.lineWidth = 2.5;
@@ -414,10 +414,14 @@ function draw() {
     ctx.fillStyle = COLOR_ADJ;
     ctx.textAlign = 'center';
     const adjLabelY = cosA >= 0 ? cy + 16 : cy - 8;
-    ctx.fillText('cos θ = ' + cosA.toFixed(3), (cx + bx) / 2, adjLabelY);
+    if (cos) {
+      ctx.fillText('cos θ = ' + cosA.toFixed(3), (cx + bx) / 2, adjLabelY);
+    } else {
+      ctx.fillText('밑변', (cx + bx) / 2, adjLabelY);
+    }
   }
 
-  // Opposite (sin) - vertical
+  // Opposite - vertical
   if (sin || tan) {
     ctx.strokeStyle = COLOR_OPP;
     ctx.lineWidth = 2.5;
@@ -430,37 +434,11 @@ function draw() {
     ctx.fillStyle = COLOR_OPP;
     const oppLabelX = cosA >= 0 ? bx + 12 : bx - 12;
     ctx.textAlign = cosA >= 0 ? 'left' : 'right';
-    ctx.fillText('sin θ = ' + sinA.toFixed(3), oppLabelX, (by + py) / 2 + 4);
-  }
-
-  // Tan line visualization
-  if (tan && Math.abs(cosA) > 0.01) {
-    const tanLen = Math.min(Math.abs(tanA) * radius, 300);
-    const tanEndX = cx + radius;
-    const tanEndY = cy - tanA * radius;
-    const clampedY = Math.max(30, Math.min(370, tanEndY));
-
-    ctx.strokeStyle = COLOR_TAN;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 3]);
-    ctx.beginPath();
-    ctx.moveTo(cx + radius, cy);
-    ctx.lineTo(cx + radius, clampedY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // tan line from origin to tangent point
-    ctx.strokeStyle = 'rgba(220, 38, 38, 0.3)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + radius, clampedY);
-    ctx.stroke();
-
-    ctx.font = 'bold 10px Segoe UI';
-    ctx.fillStyle = COLOR_TAN;
-    ctx.textAlign = 'left';
-    ctx.fillText('tan θ = ' + (Math.abs(tanA) > 999 ? '∞' : tanA.toFixed(3)), cx + radius + 6, (cy + clampedY) / 2 + 3);
+    if (sin) {
+      ctx.fillText('sin θ = ' + sinA.toFixed(3), oppLabelX, (by + py) / 2 + 4);
+    } else {
+      ctx.fillText('높이', oppLabelX, (by + py) / 2 + 4);
+    }
   }
 
   // Right angle marker
