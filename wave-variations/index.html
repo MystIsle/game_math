@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사인파 베리에이션</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ffffff;
+    font-family: 'Segoe UI', sans-serif;
+    color: #333;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h2 {
+    color: #222;
+    font-size: 18px;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .section {
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 4px;
+  }
+  .section-formula {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 12px;
+  }
+  .section-desc {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 12px;
+  }
+
+  .row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  canvas.wave {
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: #fff;
+    flex-shrink: 0;
+  }
+  .demo-box {
+    width: 120px;
+    height: 100px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .demo-item {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    position: absolute;
+  }
+
+  /* Sliders for basic section */
+  .sliders {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .slider-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .slider-group label {
+    font-size: 12px;
+    color: #999;
+    min-width: 14px;
+  }
+  .slider-group input[type="range"] {
+    width: 100px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #e5e5e5;
+    border-radius: 2px;
+    outline: none;
+  }
+  .slider-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid #0d9488;
+    cursor: grab;
+  }
+  .slider-val {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #333;
+    min-width: 32px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: #999;
+    font-family: 'Courier New', monospace;
+    margin-top: 6px;
+    height: 16px;
+  }
+</style>
+</head>
+<body>
+
+<h2>사인파 베리에이션</h2>
+
+<!-- 1. Basic: A sin(ωt + φ) -->
+<div class="section" id="sec-basic">
+  <div class="section-title">기본 사인파</div>
+  <div class="section-formula">y = A · sin(ωt + φ)</div>
+  <div class="sliders">
+    <div class="slider-group">
+      <label>A</label>
+      <input type="range" id="sl-A" min="0.2" max="1.0" step="0.1" value="1.0">
+      <span class="slider-val" id="val-A">1.0</span>
+    </div>
+    <div class="slider-group">
+      <label>ω</label>
+      <input type="range" id="sl-W" min="0.5" max="4.0" step="0.5" value="1.0">
+      <span class="slider-val" id="val-W">1.0</span>
+    </div>
+    <div class="slider-group">
+      <label>φ</label>
+      <input type="range" id="sl-P" min="0" max="6.28" step="0.1" value="0">
+      <span class="slider-val" id="val-P">0.0</span>
+    </div>
+  </div>
+  <div class="row">
+    <canvas class="wave" id="cv-basic" width="600" height="100"></canvas>
+    <div class="demo-box" id="demo-basic">
+      <div class="demo-item" style="background: #0d9488;"></div>
+    </div>
+  </div>
+  <div class="hint" id="hint-basic"></div>
+</div>
+
+<!-- 2. Absolute: |sin(t)| -->
+<div class="section" id="sec-abs">
+  <div class="section-title">절대값 — 바운스</div>
+  <div class="section-formula">y = |sin(t)|</div>
+  <div class="section-desc">음수 없이 통통 튀는 느낌</div>
+  <div class="row">
+    <canvas class="wave" id="cv-abs" width="600" height="100"></canvas>
+    <div class="demo-box" id="demo-abs">
+      <div class="demo-item" style="background: #dc2626;"></div>
+    </div>
+  </div>
+  <div class="hint" id="hint-abs"></div>
+</div>
+
+<!-- 3. Squared: sin²(t) -->
+<div class="section" id="sec-sq">
+  <div class="section-title">제곱 — 부드러운 바운스</div>
+  <div class="section-formula">y = sin²(t)</div>
+  <div class="section-desc">절대값보다 꼭짓점이 더 부드러움</div>
+  <div class="row">
+    <canvas class="wave" id="cv-sq" width="600" height="100"></canvas>
+    <div class="demo-box" id="demo-sq">
+      <div class="demo-item" style="background: #2563eb;"></div>
+    </div>
+  </div>
+  <div class="hint" id="hint-sq"></div>
+</div>
+
+<!-- 4. Positive only: max(0, sin(t)) -->
+<div class="section" id="sec-pos">
+  <div class="section-title">양수만 — 점프 후 대기</div>
+  <div class="section-formula">y = max(0, sin(t))</div>
+  <div class="section-desc">반쪽만 쓰기 — 올라갔다 멈추는 패턴</div>
+  <div class="row">
+    <canvas class="wave" id="cv-pos" width="600" height="100"></canvas>
+    <div class="demo-box" id="demo-pos">
+      <div class="demo-item" style="background: #7c3aed;"></div>
+    </div>
+  </div>
+  <div class="hint" id="hint-pos"></div>
+</div>
+
+<!-- 5. Composite: sin(t) + sin(2t)*0.5 -->
+<div class="section" id="sec-comp">
+  <div class="section-title">합성 — 복합 움직임</div>
+  <div class="section-formula">y = sin(t) + 0.5 · sin(2t)</div>
+  <div class="section-desc">두 주파수를 합쳐 복잡한 파형 생성</div>
+  <div class="row">
+    <canvas class="wave" id="cv-comp" width="600" height="100"></canvas>
+    <div class="demo-box" id="demo-comp">
+      <div class="demo-item" style="background: #d97706;"></div>
+    </div>
+  </div>
+  <div class="hint" id="hint-comp"></div>
+</div>
+
+<script>
+const canvases = {
+  basic: document.getElementById('cv-basic'),
+  abs:   document.getElementById('cv-abs'),
+  sq:    document.getElementById('cv-sq'),
+  pos:   document.getElementById('cv-pos'),
+  comp:  document.getElementById('cv-comp'),
+};
+const demos = {
+  basic: document.querySelector('#demo-basic .demo-item'),
+  abs:   document.querySelector('#demo-abs .demo-item'),
+  sq:    document.querySelector('#demo-sq .demo-item'),
+  pos:   document.querySelector('#demo-pos .demo-item'),
+  comp:  document.querySelector('#demo-comp .demo-item'),
+};
+const hints = {
+  basic: document.getElementById('hint-basic'),
+  abs:   document.getElementById('hint-abs'),
+  sq:    document.getElementById('hint-sq'),
+  pos:   document.getElementById('hint-pos'),
+  comp:  document.getElementById('hint-comp'),
+};
+
+const colors = {
+  basic: '#0d9488',
+  abs:   '#dc2626',
+  sq:    '#2563eb',
+  pos:   '#7c3aed',
+  comp:  '#d97706',
+};
+
+// Sliders
+const slA = document.getElementById('sl-A');
+const slW = document.getElementById('sl-W');
+const slP = document.getElementById('sl-P');
+const valA = document.getElementById('val-A');
+const valW = document.getElementById('val-W');
+const valP = document.getElementById('val-P');
+
+let paramA = 1.0, paramW = 1.0, paramP = 0.0;
+
+slA.addEventListener('input', () => { paramA = parseFloat(slA.value); valA.textContent = paramA.toFixed(1); });
+slW.addEventListener('input', () => { paramW = parseFloat(slW.value); valW.textContent = paramW.toFixed(1); });
+slP.addEventListener('input', () => { paramP = parseFloat(slP.value); valP.textContent = paramP.toFixed(1); });
+
+// Wave functions
+function fnBasic(t) { return paramA * Math.sin(paramW * t + paramP); }
+function fnAbs(t) { return Math.abs(Math.sin(t)); }
+function fnSq(t) { const s = Math.sin(t); return s * s; }
+function fnPos(t) { return Math.max(0, Math.sin(t)); }
+function fnComp(t) { return (Math.sin(t) + 0.5 * Math.sin(2 * t)) / 1.5; } // normalized
+
+const waveFns = { basic: fnBasic, abs: fnAbs, sq: fnSq, pos: fnPos, comp: fnComp };
+
+// Range info for vertical scaling
+// basic: -1 to 1, abs: 0 to 1, sq: 0 to 1, pos: 0 to 1, comp: -1 to 1
+const ranges = {
+  basic: { min: -1, max: 1 },
+  abs:   { min: 0,  max: 1 },
+  sq:    { min: 0,  max: 1 },
+  pos:   { min: 0,  max: 1 },
+  comp:  { min: -1, max: 1 },
+};
+
+function drawWave(key, t) {
+  const cv = canvases[key];
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const fn = waveFns[key];
+  const range = ranges[key];
+  const rangeSpan = range.max - range.min;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#e5e5e5';
+  ctx.lineWidth = 1;
+  // Zero line
+  const zeroY = H - ((0 - range.min) / rangeSpan) * (H - 20) - 10;
+  ctx.beginPath();
+  ctx.moveTo(0, zeroY);
+  ctx.lineTo(W, zeroY);
+  ctx.stroke();
+
+  // Draw wave trail
+  ctx.strokeStyle = colors[key];
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const totalTime = 4 * Math.PI;
+  for (let i = 0; i <= W; i++) {
+    const wt = (i / W) * totalTime + t;
+    const val = fn(wt);
+    const clampedVal = Math.max(range.min, Math.min(range.max, val));
+    const y = H - ((clampedVal - range.min) / rangeSpan) * (H - 20) - 10;
+    if (i === 0) ctx.moveTo(i, y);
+    else ctx.lineTo(i, y);
+  }
+  ctx.stroke();
+
+  // Current position marker
+  const curVal = fn(t);
+  const curY = H - ((Math.max(range.min, Math.min(range.max, curVal)) - range.min) / rangeSpan) * (H - 20) - 10;
+  ctx.beginPath();
+  ctx.arc(20, curY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = colors[key];
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+}
+
+function updateDemos(t) {
+  const boxH = 100;
+  const margin = 14; // item radius
+  const travel = (boxH / 2) - margin;
+
+  // Basic: up/down float
+  const vBasic = fnBasic(t);
+  demos.basic.style.left = '46px';
+  demos.basic.style.top = (boxH / 2 - vBasic * travel - 14) + 'px';
+  hints.basic.textContent = `y = ${paramA.toFixed(1)} · sin(${paramW.toFixed(1)} · t + ${paramP.toFixed(1)}) = ${vBasic.toFixed(3)}`;
+
+  // Abs: bounce
+  const vAbs = fnAbs(t);
+  demos.abs.style.left = '46px';
+  demos.abs.style.top = (boxH - margin * 2 - vAbs * travel * 1.5) + 'px';
+  hints.abs.textContent = `y = |sin(t)| = ${vAbs.toFixed(3)}`;
+
+  // Sq: smooth bounce
+  const vSq = fnSq(t);
+  demos.sq.style.left = '46px';
+  demos.sq.style.top = (boxH - margin * 2 - vSq * travel * 1.5) + 'px';
+  hints.sq.textContent = `y = sin²(t) = ${vSq.toFixed(3)}`;
+
+  // Pos: jump then rest
+  const vPos = fnPos(t);
+  demos.pos.style.left = '46px';
+  demos.pos.style.top = (boxH - margin * 2 - vPos * travel * 1.5) + 'px';
+  hints.pos.textContent = `y = max(0, sin(t)) = ${vPos.toFixed(3)}`;
+
+  // Comp: complex motion
+  const vComp = fnComp(t);
+  demos.comp.style.left = '46px';
+  demos.comp.style.top = (boxH / 2 - vComp * travel - 14) + 'px';
+  hints.comp.textContent = `y = sin(t) + 0.5·sin(2t) = ${(vComp * 1.5).toFixed(3)}`;
+}
+
+let time = 0;
+function animate() {
+  time += 0.03;
+
+  for (const key of Object.keys(canvases)) {
+    drawWave(key, time);
+  }
+  updateDemos(time);
+
+  requestAnimationFrame(animate);
+}
+
+// Responsive canvas sizing
+function resizeCanvases() {
+  const containerWidth = document.querySelector('.section').clientWidth - 32 - 120 - 16; // padding - demobox - gap
+  const w = Math.max(300, Math.min(600, containerWidth));
+  for (const key of Object.keys(canvases)) {
+    canvases[key].width = w;
+    canvases[key].height = 100;
+  }
+}
+
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases();
+animate();
+</script>
+</body>
+</html>
