@@ -8,54 +8,41 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', sans-serif;
-    background: #1a1a2e;
-    color: #eee;
+    background: #ffffff;
+    color: #333;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
     padding: 20px;
   }
-  h1 {
-    font-size: 1.4rem;
-    margin-bottom: 8px;
-    color: #e0e0e0;
-  }
-  .subtitle {
-    font-size: 0.9rem;
-    color: #888;
-    margin-bottom: 20px;
-  }
+  h1 { font-size: 1.3rem; margin-bottom: 6px; color: #222; }
+  .subtitle { font-size: 0.85rem; color: #999; margin-bottom: 16px; }
   canvas {
-    background: #16213e;
-    border-radius: 12px;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
     cursor: grab;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
   }
   canvas:active { cursor: grabbing; }
   .formula-box {
-    margin-top: 20px;
-    background: #16213e;
-    border-radius: 12px;
-    padding: 20px 32px;
+    margin-top: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    padding: 16px 28px;
     text-align: center;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
     min-width: 340px;
   }
-  .formula-box .label {
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 8px;
-  }
+  .formula-box .label { font-size: 0.8rem; color: #999; margin-bottom: 8px; }
   .formula-box .formula {
     font-size: 1.2rem;
     font-family: 'Courier New', monospace;
-    color: #fff;
+    color: #333;
     line-height: 1.8;
   }
-  .formula .a-color { color: #4ecdc4; }
-  .formula .b-color { color: #ff6b6b; }
-  .formula .c-color { color: #ffd93d; }
+  .formula .a-color { color: #0d9488; }
+  .formula .b-color { color: #dc2626; }
+  .formula .c-color { color: #d97706; }
 </style>
 </head>
 <body>
@@ -73,25 +60,24 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const formulaEl = document.getElementById('formulaDisplay');
 
-// Grid settings
+const COLOR_A = '#0d9488';
+const COLOR_B = '#dc2626';
+const COLOR_C = '#d97706';
+
 const gridOriginX = 80;
 const gridOriginY = 360;
 const cellSize = 40;
 const gridCols = 11;
 const gridRows = 8;
 
-// Points in grid coordinates
 let pointA = { gx: 1, gy: 1 };
 let pointB = { gx: 8, gy: 6 };
 
 let dragging = null;
-const pointRadius = 14;
+const pointRadius = 12;
 
 function gridToCanvas(gx, gy) {
-  return {
-    x: gridOriginX + gx * cellSize,
-    y: gridOriginY - gy * cellSize
-  };
+  return { x: gridOriginX + gx * cellSize, y: gridOriginY - gy * cellSize };
 }
 
 function canvasToGrid(cx, cy) {
@@ -106,7 +92,7 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.strokeStyle = 'rgba(0,0,0,0.05)';
   ctx.lineWidth = 1;
   for (let i = 0; i <= gridCols; i++) {
     const x = gridOriginX + i * cellSize;
@@ -124,8 +110,8 @@ function draw() {
   }
 
   // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(gridOriginX, gridOriginY);
   ctx.lineTo(gridOriginX + gridCols * cellSize + 20, gridOriginY);
@@ -136,13 +122,14 @@ function draw() {
   ctx.stroke();
 
   // Axis labels
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.font = '13px Segoe UI';
+  ctx.textAlign = 'left';
   ctx.fillText('x', gridOriginX + gridCols * cellSize + 8, gridOriginY + 18);
   ctx.fillText('y', gridOriginX - 18, gridOriginY - gridRows * cellSize - 8);
 
   // Axis numbers
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
   ctx.font = '11px Segoe UI';
   ctx.textAlign = 'center';
   for (let i = 0; i <= gridCols; i++) {
@@ -155,14 +142,14 @@ function draw() {
 
   const a = gridToCanvas(pointA.gx, pointA.gy);
   const b = gridToCanvas(pointB.gx, pointB.gy);
-  const corner = { x: b.x, y: a.y }; // right angle corner
+  const corner = { x: b.x, y: a.y };
 
   const dx = Math.abs(pointB.gx - pointA.gx);
   const dy = Math.abs(pointB.gy - pointA.gy);
   const dist = Math.sqrt(dx * dx + dy * dy);
 
-  // Fill right triangle
-  ctx.fillStyle = 'rgba(255, 217, 61, 0.06)';
+  // Fill triangle
+  ctx.fillStyle = 'rgba(217, 119, 6, 0.05)';
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(corner.x, corner.y);
@@ -170,9 +157,9 @@ function draw() {
   ctx.closePath();
   ctx.fill();
 
-  // Horizontal line (a) - dx
-  ctx.strokeStyle = '#4ecdc4';
-  ctx.lineWidth = 2.5;
+  // Horizontal line (a)
+  ctx.strokeStyle = COLOR_A;
+  ctx.lineWidth = 2;
   ctx.setLineDash([6, 4]);
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
@@ -180,9 +167,9 @@ function draw() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Vertical line (b) - dy
-  ctx.strokeStyle = '#ff6b6b';
-  ctx.lineWidth = 2.5;
+  // Vertical line (b)
+  ctx.strokeStyle = COLOR_B;
+  ctx.lineWidth = 2;
   ctx.setLineDash([6, 4]);
   ctx.beginPath();
   ctx.moveTo(corner.x, corner.y);
@@ -194,7 +181,7 @@ function draw() {
   const markerSize = 10;
   const mx = corner.x + (a.x < corner.x ? markerSize : -markerSize);
   const my = corner.y + (b.y < corner.y ? markerSize : -markerSize);
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(mx, corner.y);
@@ -202,37 +189,32 @@ function draw() {
   ctx.lineTo(corner.x, my);
   ctx.stroke();
 
-  // Hypotenuse (c) - distance
-  ctx.strokeStyle = '#ffd93d';
-  ctx.lineWidth = 3;
+  // Hypotenuse (c)
+  ctx.strokeStyle = COLOR_C;
+  ctx.lineWidth = 2.5;
   ctx.setLineDash([]);
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(b.x, b.y);
   ctx.stroke();
 
-  // Labels on edges
-  ctx.font = 'bold 14px Segoe UI';
+  // Labels
+  ctx.font = 'bold 13px Segoe UI';
   ctx.textAlign = 'center';
 
-  // a label
   if (dx > 0) {
-    ctx.fillStyle = '#4ecdc4';
-    const labelY = a.y + 22;
-    ctx.fillText('a = ' + dx, (a.x + corner.x) / 2, labelY);
+    ctx.fillStyle = COLOR_A;
+    ctx.fillText('a = ' + dx, (a.x + corner.x) / 2, a.y + 22);
   }
 
-  // b label
   if (dy > 0) {
-    ctx.fillStyle = '#ff6b6b';
-    const labelX = corner.x + 28;
+    ctx.fillStyle = COLOR_B;
     ctx.textAlign = 'left';
-    ctx.fillText('b = ' + dy, labelX, (corner.y + b.y) / 2 + 4);
+    ctx.fillText('b = ' + dy, corner.x + 24, (corner.y + b.y) / 2 + 4);
     ctx.textAlign = 'center';
   }
 
-  // c label
-  ctx.fillStyle = '#ffd93d';
+  ctx.fillStyle = COLOR_C;
   const midX = (a.x + b.x) / 2;
   const midY = (a.y + b.y) / 2;
   const angle = Math.atan2(b.y - a.y, b.x - a.x);
@@ -243,46 +225,43 @@ function draw() {
   // Point A
   ctx.beginPath();
   ctx.arc(a.x, a.y, pointRadius, 0, Math.PI * 2);
-  ctx.fillStyle = '#16213e';
+  ctx.fillStyle = '#fff';
   ctx.fill();
-  ctx.strokeStyle = '#4ecdc4';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = COLOR_A;
+  ctx.lineWidth = 2.5;
   ctx.stroke();
-  ctx.fillStyle = '#4ecdc4';
+  ctx.fillStyle = COLOR_A;
   ctx.font = 'bold 12px Segoe UI';
   ctx.textAlign = 'center';
   ctx.fillText('A', a.x, a.y + 4);
 
-  // Point A coordinates
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.font = '12px Courier New';
-  ctx.fillText(`(${pointA.gx}, ${pointA.gy})`, a.x, a.y + 30);
+  ctx.fillText(`(${pointA.gx}, ${pointA.gy})`, a.x, a.y + 28);
 
   // Point B
   ctx.beginPath();
   ctx.arc(b.x, b.y, pointRadius, 0, Math.PI * 2);
-  ctx.fillStyle = '#16213e';
+  ctx.fillStyle = '#fff';
   ctx.fill();
-  ctx.strokeStyle = '#ff6b6b';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = COLOR_B;
+  ctx.lineWidth = 2.5;
   ctx.stroke();
-  ctx.fillStyle = '#ff6b6b';
+  ctx.fillStyle = COLOR_B;
   ctx.font = 'bold 12px Segoe UI';
   ctx.fillText('B', b.x, b.y + 4);
 
-  // Point B coordinates
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.font = '12px Courier New';
-  ctx.fillText(`(${pointB.gx}, ${pointB.gy})`, b.x, b.y - 22);
+  ctx.fillText(`(${pointB.gx}, ${pointB.gy})`, b.x, b.y - 20);
 
-  // Update formula
+  // Formula
   formulaEl.innerHTML =
     `<span class="a-color">a</span>² + <span class="b-color">b</span>² = <span class="c-color">c</span>²<br>` +
     `<span class="a-color">${dx}</span>² + <span class="b-color">${dy}</span>² = <span class="a-color">${dx*dx}</span> + <span class="b-color">${dy*dy}</span> = <span class="c-color">${dx*dx + dy*dy}</span><br>` +
     `<span class="c-color">c</span> = √<span class="c-color">${dx*dx + dy*dy}</span> = <span class="c-color" style="font-size:1.4rem; font-weight:bold;">${dist.toFixed(2)}</span>`;
 }
 
-// Mouse events
 function getMousePos(e) {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -293,8 +272,7 @@ function getMousePos(e) {
 
 function hitTest(mouse, point) {
   const p = gridToCanvas(point.gx, point.gy);
-  const dx = mouse.x - p.x;
-  const dy = mouse.y - p.y;
+  const dx = mouse.x - p.x, dy = mouse.y - p.y;
   return Math.sqrt(dx*dx + dy*dy) < pointRadius + 8;
 }
 
@@ -303,7 +281,6 @@ canvas.addEventListener('mousedown', (e) => {
   if (hitTest(m, pointB)) dragging = pointB;
   else if (hitTest(m, pointA)) dragging = pointA;
 });
-
 canvas.addEventListener('mousemove', (e) => {
   if (!dragging) return;
   const m = getMousePos(e);
@@ -312,38 +289,26 @@ canvas.addEventListener('mousemove', (e) => {
   dragging.gy = g.gy;
   draw();
 });
-
 canvas.addEventListener('mouseup', () => { dragging = null; });
 canvas.addEventListener('mouseleave', () => { dragging = null; });
 
-// Touch events
 canvas.addEventListener('touchstart', (e) => {
   e.preventDefault();
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const m = {
-    x: (touch.clientX - rect.left) * (canvas.width / rect.width),
-    y: (touch.clientY - rect.top) * (canvas.height / rect.height)
-  };
+  const t = e.touches[0], rect = canvas.getBoundingClientRect();
+  const m = { x: (t.clientX - rect.left) * (canvas.width / rect.width), y: (t.clientY - rect.top) * (canvas.height / rect.height) };
   if (hitTest(m, pointB)) dragging = pointB;
   else if (hitTest(m, pointA)) dragging = pointA;
 });
-
 canvas.addEventListener('touchmove', (e) => {
   e.preventDefault();
   if (!dragging) return;
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const m = {
-    x: (touch.clientX - rect.left) * (canvas.width / rect.width),
-    y: (touch.clientY - rect.top) * (canvas.height / rect.height)
-  };
+  const t = e.touches[0], rect = canvas.getBoundingClientRect();
+  const m = { x: (t.clientX - rect.left) * (canvas.width / rect.width), y: (t.clientY - rect.top) * (canvas.height / rect.height) };
   const g = canvasToGrid(m.x, m.y);
   dragging.gx = g.gx;
   dragging.gy = g.gy;
   draw();
 });
-
 canvas.addEventListener('touchend', () => { dragging = null; });
 
 draw();
