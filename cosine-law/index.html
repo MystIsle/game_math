@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코사인 법칙</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #ffffff;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 { font-size: 1.3rem; margin-bottom: 6px; color: #222; }
+  .subtitle { font-size: 0.85rem; color: #999; margin-bottom: 16px; }
+  .controls {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    padding: 10px 20px;
+  }
+  .control-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.85rem;
+    color: #555;
+    transition: opacity 0.2s;
+  }
+  .control-item.off { opacity: 0.3; }
+  .control-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .control-item input[type="checkbox"]:checked {
+    border-color: #7c3aed;
+    background: #7c3aed;
+  }
+  .control-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .main-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  canvas {
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    cursor: grab;
+  }
+  canvas:active { cursor: grabbing; }
+  .panel {
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    padding: 20px;
+    min-width: 260px;
+    max-width: 280px;
+  }
+  .panel h2 {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .side-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .side-label { font-size: 0.9rem; font-weight: 600; }
+  .side-value {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  .angle-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+  }
+  .angle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+  .angle-label { font-size: 0.9rem; font-weight: 600; color: #7c3aed; }
+  .angle-value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #7c3aed;
+  }
+  .formula-section {
+    margin-top: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    padding: 16px 24px;
+    width: 100%;
+    max-width: 660px;
+  }
+  .formula-section h2 {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .formula-line {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    line-height: 2;
+    color: #333;
+  }
+  .color-a { color: #0d9488; }
+  .color-b { color: #2563eb; }
+  .color-c { color: #d97706; }
+  .color-C { color: #7c3aed; }
+  .pyth-note {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+  }
+  .pyth-note.active {
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    color: #7c3aed;
+  }
+  .pyth-note.inactive {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #bbb;
+  }
+</style>
+</head>
+<body>
+
+<h1>코사인 법칙</h1>
+<p class="subtitle">꼭짓점을 드래그해서 삼각형을 변형해보세요</p>
+
+<div class="controls">
+  <label class="control-item">
+    <input type="checkbox" id="showHeight"> 수선 보기 (직각삼각형 분할)
+  </label>
+</div>
+
+<div class="main-container">
+  <canvas id="canvas" width="420" height="400"></canvas>
+  <div class="panel">
+    <h2>변의 길이</h2>
+    <div class="side-row">
+      <span class="side-label" style="color:#0d9488;">a (B→C)</span>
+      <span class="side-value" style="color:#0d9488;" id="sideA">0</span>
+    </div>
+    <div class="side-row">
+      <span class="side-label" style="color:#2563eb;">b (A→C)</span>
+      <span class="side-value" style="color:#2563eb;" id="sideB">0</span>
+    </div>
+    <div class="side-row">
+      <span class="side-label" style="color:#d97706;">c (A→B)</span>
+      <span class="side-value" style="color:#d97706;" id="sideC">0</span>
+    </div>
+
+    <div class="angle-section">
+      <h2>∠C (A-C-B)</h2>
+      <div class="angle-row">
+        <span class="angle-label">∠C</span>
+        <span class="angle-value" id="angleC">0°</span>
+      </div>
+      <div style="font-size:0.78rem; color:#aaa; font-family:'Courier New',monospace;" id="cosC">cos C = 0</div>
+    </div>
+
+    <div style="margin-top:14px; padding-top:14px; border-top:1px solid #eee;">
+      <h2>범례</h2>
+      <div style="font-size:0.8rem; color:#666; line-height:1.8;">
+        <span style="color:#0d9488;">■</span> a &nbsp;
+        <span style="color:#2563eb;">■</span> b &nbsp;
+        <span style="color:#d97706;">■</span> c &nbsp;
+        <span style="color:#7c3aed;">■</span> ∠C
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="formula-section">
+  <h2>코사인 법칙</h2>
+  <div class="formula-line" id="formulaLine1"></div>
+  <div class="formula-line" id="formulaLine2"></div>
+  <div class="formula-line" id="formulaLine3"></div>
+  <div class="pyth-note inactive" id="pythNote">
+    ∠C ≈ 90° → cos C ≈ 0 → 피타고라스 정리와 같아진다
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const COLOR_A = '#0d9488';
+const COLOR_B = '#2563eb';
+const COLOR_C = '#d97706';
+const COLOR_ANGLE = '#7c3aed';
+
+let points = [
+  { x: 80,  y: 320, label: 'A', color: COLOR_C },
+  { x: 360, y: 320, label: 'B', color: COLOR_C },
+  { x: 200, y: 60,  label: 'C', color: COLOR_ANGLE }
+];
+
+let dragging = null;
+const pr = 12;
+const showHeight = document.getElementById('showHeight');
+
+showHeight.addEventListener('change', draw);
+
+function dist(p1, p2) {
+  return Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+}
+
+function angleBetween(center, p1, p2) {
+  const v1x = p1.x - center.x, v1y = p1.y - center.y;
+  const v2x = p2.x - center.x, v2y = p2.y - center.y;
+  const dot = v1x * v2x + v1y * v2y;
+  const cross = v1x * v2y - v1y * v2x;
+  return Math.atan2(Math.abs(cross), dot);
+}
+
+function projectPointOnLine(P, A, B) {
+  const dx = B.x - A.x, dy = B.y - A.y;
+  const len2 = dx*dx + dy*dy;
+  if (len2 === 0) return { x: A.x, y: A.y };
+  const t = ((P.x - A.x)*dx + (P.y - A.y)*dy) / len2;
+  return { x: A.x + t*dx, y: A.y + t*dy };
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const [A, B, C] = points;
+  const a = dist(B, C);
+  const b = dist(A, C);
+  const c = dist(A, B);
+  const angC = angleBetween(C, A, B);
+  const angCdeg = angC * 180 / Math.PI;
+  const cosCV = Math.cos(angC);
+
+  // Triangle fill
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y);
+  ctx.lineTo(B.x, B.y);
+  ctx.lineTo(C.x, C.y);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,0,0,0.02)';
+  ctx.fill();
+
+  // Height line (perpendicular from C to AB)
+  if (showHeight.checked) {
+    const foot = projectPointOnLine(C, A, B);
+
+    // Dashed height line
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(C.x, C.y);
+    ctx.lineTo(foot.x, foot.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Right angle marker at foot
+    const hx = C.x - foot.x, hy = C.y - foot.y;
+    const hLen = Math.sqrt(hx*hx + hy*hy);
+    if (hLen > 5) {
+      const nhx = hx/hLen, nhy = hy/hLen;
+      const abx = B.x - A.x, aby = B.y - A.y;
+      const abLen = Math.sqrt(abx*abx + aby*aby);
+      const nabx = abx/abLen, naby = aby/abLen;
+      const ms = 8;
+      ctx.strokeStyle = 'rgba(124, 58, 237, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(foot.x + nhx*ms, foot.y + nhy*ms);
+      ctx.lineTo(foot.x + nhx*ms + nabx*ms, foot.y + nhy*ms + naby*ms);
+      ctx.lineTo(foot.x + nabx*ms, foot.y + naby*ms);
+      ctx.stroke();
+    }
+
+    // Label "h"
+    const midHx = (C.x + foot.x) / 2;
+    const midHy = (C.y + foot.y) / 2;
+    ctx.fillStyle = COLOR_ANGLE;
+    ctx.font = 'bold 11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('h', midHx - 12, midHy);
+
+    // Small dot at foot
+    ctx.beginPath();
+    ctx.arc(foot.x, foot.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = COLOR_ANGLE;
+    ctx.fill();
+  }
+
+  // Edge a (B→C)
+  ctx.strokeStyle = COLOR_A;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(B.x, B.y);
+  ctx.lineTo(C.x, C.y);
+  ctx.stroke();
+
+  // Edge b (A→C)
+  ctx.strokeStyle = COLOR_B;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y);
+  ctx.lineTo(C.x, C.y);
+  ctx.stroke();
+
+  // Edge c (A→B)
+  ctx.strokeStyle = COLOR_C;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y);
+  ctx.lineTo(B.x, B.y);
+  ctx.stroke();
+
+  // Angle arc at C
+  const arcR = 24;
+  const a1 = Math.atan2(A.y - C.y, A.x - C.x);
+  const a2 = Math.atan2(B.y - C.y, B.x - C.x);
+  let start = a1, end = a2;
+  let diff = end - start;
+  if (diff > Math.PI) start += 2 * Math.PI;
+  if (diff < -Math.PI) end += 2 * Math.PI;
+  const ccw = (end < start);
+
+  ctx.beginPath();
+  ctx.moveTo(C.x, C.y);
+  ctx.arc(C.x, C.y, arcR, start, end, ccw);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(124, 58, 237, 0.1)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, arcR, start, end, ccw);
+  ctx.strokeStyle = 'rgba(124, 58, 237, 0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Edge labels
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+
+  // a label
+  const maBCx = (B.x + C.x)/2, maBCy = (B.y + C.y)/2;
+  const naBCx = -(C.y - B.y), naBCy = (C.x - B.x);
+  const naBClen = Math.sqrt(naBCx*naBCx + naBCy*naBCy);
+  ctx.fillStyle = COLOR_A;
+  ctx.fillText('a', maBCx + naBCx/naBClen * 14, maBCy + naBCy/naBClen * 14);
+
+  // b label
+  const mbACx = (A.x + C.x)/2, mbACy = (A.y + C.y)/2;
+  const nbACx = -(C.y - A.y), nbACy = (C.x - A.x);
+  const nbAClen = Math.sqrt(nbACx*nbACx + nbACy*nbACy);
+  ctx.fillStyle = COLOR_B;
+  ctx.fillText('b', mbACx - nbACx/nbAClen * 14, mbACy - nbACy/nbAClen * 14);
+
+  // c label
+  const mcABx = (A.x + B.x)/2, mcABy = (A.y + B.y)/2;
+  const ncABx = -(B.y - A.y), ncABy = (B.x - A.x);
+  const ncABlen = Math.sqrt(ncABx*ncABx + ncABy*ncABy);
+  ctx.fillStyle = COLOR_C;
+  ctx.fillText('c', mcABx + ncABx/ncABlen * 14, mcABy + ncABy/ncABlen * 14);
+
+  // Angle label
+  const midAng = (a1 + a2) / 2;
+  // Adjust for correct side
+  const testX = C.x + Math.cos(midAng) * arcR * 2;
+  const testY = C.y + Math.sin(midAng) * arcR * 2;
+  let labelAng = midAng;
+  // Check if midAng points to the correct side
+  const crossTest = (A.x - C.x)*(testY - C.y) - (A.y - C.y)*(testX - C.x);
+  const crossAB = (A.x - C.x)*(B.y - C.y) - (A.y - C.y)*(B.x - C.x);
+  if ((crossTest > 0) !== (crossAB > 0)) {
+    labelAng = midAng + Math.PI;
+  }
+  ctx.fillStyle = COLOR_ANGLE;
+  ctx.font = '11px Courier New';
+  ctx.fillText(angCdeg.toFixed(0) + '°', C.x + Math.cos(labelAng) * (arcR + 14), C.y + Math.sin(labelAng) * (arcR + 14));
+
+  // Points
+  points.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, pr, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.fillStyle = p.color;
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.label, p.x, p.y + 4);
+  });
+
+  // Update panel
+  const scale = 1; // pixel = 1 unit
+  document.getElementById('sideA').textContent = a.toFixed(1);
+  document.getElementById('sideB').textContent = b.toFixed(1);
+  document.getElementById('sideC').textContent = c.toFixed(1);
+  document.getElementById('angleC').textContent = angCdeg.toFixed(1) + '°';
+  document.getElementById('cosC').textContent = 'cos C = ' + cosCV.toFixed(3);
+
+  // Formula
+  const aSq = a*a, bSq = b*b, cSq = c*c;
+  const correction = 2*a*b*cosCV;
+
+  document.getElementById('formulaLine1').innerHTML =
+    `<span class="color-c">c²</span> = <span class="color-a">a²</span> + <span class="color-b">b²</span> − 2<span class="color-a">a</span><span class="color-b">b</span> cos <span class="color-C">C</span>`;
+
+  document.getElementById('formulaLine2').innerHTML =
+    `<span class="color-c">${cSq.toFixed(0)}</span> = <span class="color-a">${aSq.toFixed(0)}</span> + <span class="color-b">${bSq.toFixed(0)}</span> − 2 × <span class="color-a">${a.toFixed(0)}</span> × <span class="color-b">${b.toFixed(0)}</span> × <span class="color-C">${cosCV.toFixed(3)}</span>`;
+
+  document.getElementById('formulaLine3').innerHTML =
+    `<span class="color-c">${cSq.toFixed(0)}</span> = <span class="color-a">${aSq.toFixed(0)}</span> + <span class="color-b">${bSq.toFixed(0)}</span> − <span class="color-C">${correction.toFixed(0)}</span> = <span class="color-c" style="font-size:1.2rem; font-weight:bold;">${(aSq + bSq - correction).toFixed(0)}</span>`;
+
+  // Pythagorean note
+  const pythNote = document.getElementById('pythNote');
+  if (Math.abs(angCdeg - 90) < 5) {
+    pythNote.className = 'pyth-note active';
+    pythNote.innerHTML = `∠C ≈ 90° → cos C ≈ 0 → <strong>c² ≈ a² + b²</strong> (피타고라스 정리!)`;
+  } else {
+    pythNote.className = 'pyth-note inactive';
+    pythNote.innerHTML = `∠C = ${angCdeg.toFixed(0)}° → cos C = ${cosCV.toFixed(3)} → 보정값: ${correction.toFixed(0)}`;
+  }
+}
+
+function getMousePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height)
+  };
+}
+
+function hitTest(mouse, point) {
+  const dx = mouse.x - point.x, dy = mouse.y - point.y;
+  return Math.sqrt(dx*dx + dy*dy) < pr + 10;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  const m = getMousePos(e);
+  for (const p of points) { if (hitTest(m, p)) { dragging = p; break; } }
+});
+canvas.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  const m = getMousePos(e);
+  dragging.x = Math.max(pr, Math.min(canvas.width - pr, m.x));
+  dragging.y = Math.max(pr, Math.min(canvas.height - pr, m.y));
+  draw();
+});
+canvas.addEventListener('mouseup', () => { dragging = null; });
+canvas.addEventListener('mouseleave', () => { dragging = null; });
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const t = e.touches[0], rect = canvas.getBoundingClientRect();
+  const m = { x: (t.clientX - rect.left) * (canvas.width / rect.width), y: (t.clientY - rect.top) * (canvas.height / rect.height) };
+  for (const p of points) { if (hitTest(m, p)) { dragging = p; break; } }
+});
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (!dragging) return;
+  const t = e.touches[0], rect = canvas.getBoundingClientRect();
+  const m = { x: (t.clientX - rect.left) * (canvas.width / rect.width), y: (t.clientY - rect.top) * (canvas.height / rect.height) };
+  dragging.x = Math.max(pr, Math.min(canvas.width - pr, m.x));
+  dragging.y = Math.max(pr, Math.min(canvas.height - pr, m.y));
+  draw();
+});
+canvas.addEventListener('touchend', () => { dragging = null; });
+
+draw();
+</script>
+</body>
+</html>
